@@ -4,10 +4,10 @@
 	<head>
 		<meta charset="utf-8">
 
-		<title>reveal.js – The HTML Presentation Framework</title>
+		<title>QL-MON – The QL Monitoring Framework</title>
 
-		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
-		<meta name="author" content="Hakim El Hattab">
+		<meta name="description" content="A framework for easily creating beautiful monitoring solutions">
+		<meta name="author" content="Yannic Schneider">
 
 		<meta name="apple-mobile-web-app-capable" content="yes">
 		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -40,45 +40,171 @@
 
 			<!-- Any section element inside of this container is displayed as a slide -->
 			<div class="slides">
-				<section>
-					<h1>Reveal.js</h1>
-					<h3>The HTML Presentation Framework</h3>
-					<p>
-						<small>Created by <a href="http://hakim.se">Hakim El Hattab</a> and <a href="https://github.com/hakimel/reveal.js/graphs/contributors">contributors</a></small>
-					</p>
-				</section>
+<section>
+  <h1>QL-Mon</h1>
+  <h3>The QL Monitoring Framework</h3>
+  <p>
+    <small>Created by Jeroen & <a href="http://vendetta.ch">Yannic</a> </small>
+  </p>
+</section>
 
-				<section>
-					<h2>Hello There</h2>
-					<p>
-						reveal.js enables you to create beautiful interactive slide decks using HTML. This presentation will show you examples of what it can do.
-					</p>
-				</section>
+<section data-background="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif">
+  <h2> WOW MEOW!</h2>
+</section>
 
-				<!-- Example of nested vertical slides -->
-				<section>
-					<section>
-						<h2>Vertical Slides</h2>
-						<p>Slides can be nested inside of each other.</p>
-						<p>Use the <em>Space</em> key to navigate through all slides.</p>
-						<br>
-						<a href="#" class="navigate-down">
-							<img width="178" height="238" data-src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Down arrow">
-						</a>
-					</section>
-					<section>
-						<h2>Basement Level 1</h2>
-						<p>Nested slides are useful for adding additional detail underneath a high level horizontal slide.</p>
-					</section>
-					<section>
-						<h2>Basement Level 2</h2>
-						<p>That's it, time to go back up.</p>
-						<br>
-						<a href="#/2">
-							<img width="178" height="238" data-src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Up arrow" style="transform: rotate(180deg); -webkit-transform: rotate(180deg);">
-						</a>
-					</section>
-				</section>
+<section>
+  <h2>Overview</h2>
+  <ul>
+  <li>Multiple Platforms with different Monitoring requirements</li>
+  <li>More than 400'000 Customers with CPE(Customer Promise Equipement)</li>
+  <li>Over 22 Partners</li>
+  <li></li>
+  </ul>
+</section>
+
+<section>
+  <h2>Status Quo</h2>
+  <ul>
+  <li>DOCSIS</li>
+    <ul>
+    <li>CPE: Axiros Axtract</li>
+    <li>HE: Inhouse development (...)</li>
+    </ul>
+  <li>FTTH</li>
+    <ul>
+    <li>CPE: Inhouse development</li>
+    <li>HE: Inhouse development (Python, RRDTool, MariaDB, Bootstrap)</li>
+    </ul>
+  </ul>
+</section>
+  
+<!-- Example of nested vertical slides -->
+<section>
+  <section>
+    <h2>Deep dive</h2>
+    <p>The monitoring platforms we have today</p>
+    <br>
+    <a href="#" class="navigate-down">
+      <img width="178" height="238" data-src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Down arrow">
+    </a>
+  </section>
+  <section>
+    <h2>DOCSIS CPE</h2>
+    <img data-src="img/docsis_cpe00.png">
+  </section>
+  <section>
+    <img data-src="img/docsis_cpe01.png">
+  </section>
+  <section>
+    <h2>FTTH CPE</h2>
+    <img data-src="img/ftth_cpe00.png">
+  </section>
+  <section>
+    <img data-src="img/ftth_cpe01.png">
+  </section>
+  <section>
+    <h2>DOCSIS HE</h2>
+    <img data-src="img/docsis_he00.png">
+  </section>
+  <section>
+    <h2>FTTH HE</h2>
+    <img data-src="img/ftth_he00.png">
+  </section>
+  <section>
+    <img data-src="img/ftth_he01.png">
+  </section>
+  <section>
+    <h2>QMC Proxy</h2>
+    <img data-src="img/qmc_proxy.png">
+  </section>
+  <section>
+    <h2>QL-Mon Vision</h2>
+    <img data-src="img/ql-mon_architecture.png">
+  </section>
+</script></section>
+
+
+<section>
+  <h2>Vision for the QL-Monitoring</h2>
+  <ul>
+  <li>Use Open Source Software only</li>
+  <li>Instead of developing everything, integrate different OSS</li>
+  <li>Many parts of a monitoring system have already been developed</li>
+  <li>Many of them are used in production</li>
+  </ul>
+</section>
+
+<section>
+  <h2>What are our requirements?</h2>
+  <ul>
+  <li>Unified concept for monitoring</li>
+  <li></li>
+  <li></li>
+  <li></li>
+  <li></li>
+  <li></li>
+  </ul>
+</section>
+
+
+<section>
+  <h2>Requirements</h2>
+  <img data-src="img/ql-mon_req.png">
+</section>
+
+<section>
+  <h2>Software to analyze</h2>
+  <img data-src="img/ql-mon_oss.png">
+</section>
+
+<section>
+  <h1>Resulted System</h1>
+</section>
+
+<section>
+  <h2>Architecture</h2>
+  <img data-src="img/ql-mon_stack.png">
+</section>
+
+
+<section>
+  <h2>Questions?</h2>
+  <p>Source code: <a href="https://repo.lsan.fcom.ch/xyz">https://repo.lsan.fcom.ch/xyz</a> </p>
+  </br>
+  <p>Jeroem Massar - <a href="mailto:jmassar@qlgroup.ch">jmassar@qlgroup.ch</a></p>
+  <p>Yannic Schneider - <a href="mailto:yschneider@qlgroup.ch">yschneider@qlgroup.ch</a></p>
+</section>
+
+
+
+
+<section class="wfid_temp89694 section"  data-markdown><script type='text/template'>
+
+<code console>
+    # cat install.conf
+    system hostname = unconfigured
+    password for root account = hunter2
+    Do you expect to run the X Window System? = yes
+    Change the default console to com0? = yes
+    What timezone are you in? = US/Mountain
+    Location of sets? = http
+    server? = 192.168.10.1
+    server directory? = 5.5/
+</code>
+
+</script></section><section class="wfid_temp89694 section"  data-markdown><script type='text/template'>
+## Example build
+## and basic autoinstall
+
+[![Screencast of install](http://blog.niko.im/sc1.png)](https://asciinema.org/a/9931?speed=5&size=medium&autoplay=1)
+
+</script></section><section class="wfid_temp89723 section"  data-markdown><script type='text/template'>
+## How could we
+## build on this?
+
+  * use `site${release}.tgz` to bootstrap your favorite software (CF Management comes to mind)
+  * monitor multicast responses in order to bootstrap new clients
+  * write an API-driven, dynamic `install.conf` generator (so that all install-answers are custom on a per-client/MAC basis)>
 
 				<section>
 					<h2>Slides</h2>
@@ -414,4 +540,3 @@ Reveal.addEventListener( 'customevent', function() {
 
 	</body>
 </html>
-

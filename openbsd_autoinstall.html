@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>OpenBSD_Autoinstall</title>
+
+		<meta name="description" content="">
+		<meta name="author" content="">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="/reveal.js/css/reveal.min.css">
+		<link rel="stylesheet" href="/reveal.js/css/theme/default.css" id="theme">
+		<link rel="stylesheet" href="/css/ss-override.css">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="/reveal.js/lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
+		<script>
+			document.write( '<link rel="stylesheet" href="/reveal.js/css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="/reveal.js/lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section class="wfid_temp88968 section"  data-markdown><script type='text/template'># OpenBSD 
+# Autoinstall
+
+![OpenBSD](https://bolddaemon.com/img/banner1.gif)
+
+</script></section><section class="wfid_temp89029 section"  data-markdown><script type='text/template'>
+## Agenda
+
+
+  - what is it?
+  - why anyone would use it?
+  - deploy a basic rig
+  - demonstrate a complicated rig
+
+</script></section><section class="wfid_temp89060 section"  data-markdown><script type='text/template'>
+## What is it?
+
+`autoinstall(8)` is an install method that was added in OpenBSD 5.5.
+
+The text-based installation procedure can be fully automated through the use of
+a preseeded configuration file containing answers to the questions.
+
+</script></section><section class="wfid_temp89089 section"  data-markdown><script type='text/template'>
+## Why would you use it?
+
+There are plenty of reasons why someone would want to use this feature,
+including but not limited to:
+
+1. elastic environments 
+2. basis for a hosting product 
+3. easier installation on isolated/remote computers 
+4. easier regression testing 
+5. it is cool
+
+</script></section><section class="wfid_temp89118 section"  data-markdown><script type='text/template'>
+## What does it look like?
+
+Everything one needs to get going is already installed under OpenBSD. There is
+no need to install any packages. The core components of an autoinstall rig are:
+
+  - **[dhcp server]** 
+    - responds to dhcp requests from netboot/pxe clients
+    - returns `next-server` and `filename` to pxe client, telling it what to grab next
+  - **[tftp server]** 
+    - serves `/bsd.rd` kernel
+    - serves `/pxeboot` (as `/auto_install`)
+  - **[web server]** 
+    - serves installation sets (like you would see in a public mirror)
+
+</script></section><section class="wfid_temp89165 section"  data-markdown><script type='text/template'>
+## Overview of steps
+
+For a high level overview, here are the things we will do in this tutorial:
+
+  * configure dhcpd 
+  * configure tftpd 
+  * configure a webserver 
+  * synchronize openbsd installation media into the webroot 
+  * build an install.conf file
+
+</script></section><section class="wfid_temp89197 section"  data-markdown><script type='text/template'>
+## Configuring DHCPD: Part 1
+
+I run dhcpd from my router, however, it can be run from anywhere as long as you
+have control of the broadcast domain. Add a stanza similar to this into your
+`/etc/dhcpd.conf`:
+
+<code console>
+    # grep cobug /etc/dhcpd.conf
+    subnet 192.168.10.0 netmask 255.255.255.0 { # cobug example 
+        range 192.168.10.150 192.168.10.250;    # cobug example 
+        option routers 192.168.10.1;            # cobug example 
+        next-server 192.168.10.1;               # cobug example 
+        filename "auto_install";                # cobug example 
+    }                                           # cobug example
+</code>
+
+</script></section><section class="wfid_temp89240 section"  data-markdown><script type='text/template'>
+## Configuring DHCPD: Part 2
+
+Make sure it runs on boot 
+
+<code console>
+    # grep 'dhcpd_flags' /etc/rc.conf.local || \
+      echo 'dhcpd_flags=""' >> /etc/rc.conf.local
+</code>
+
+start dhcpd
+
+<code console>
+    # /etc/rc.d/dhcpd restart
+    dhcpd(ok) 
+    dhcpd(ok)
+</code>
+
+</script></section><section class="wfid_temp89269 section"  data-markdown><script type='text/template'>
+## Configuring tftpd: Part 1
+
+We will point tftpd to use the webroot instead of the default.  We want to do
+this because we will also be serving out the install media from there, which
+already contains the `pxeboot` and `bsd.rd` files we need. 
+
+Also because it lets us keep all the autoinstall files together in one place.
+
+</script></section><section class="wfid_temp89297 section"  data-markdown><script type='text/template'>
+## Configuring tftpd: Part 2
+
+enable it on boot and point it to the webroot:
+
+<code console>
+    # grep 'tftpd_flags' /etc/rc.conf.local || \
+      echo 'tftpd_flags="/var/www/htdocs/"' >> /etc/rc.conf.local
+</code>
+
+start it
+
+<code console>
+    # /etc/rc.d/tftpd restart
+    tftpd(ok)
+    tftpd(ok)
+</code>
+
+</script></section><section class="wfid_temp89327 section"  data-markdown><script type='text/template'>
+## Configuring the webserver: Part 1
+
+Bandwidth is not free, so we will start a webserver and use it to serve the
+installation media we download. We will be making use of the webserver in the
+latter half of this presentation.
+
+</script></section><section class="wfid_temp89373 section"  data-markdown><script type='text/template'>
+## Configuring the webserver: Part 2
+
+enable it on boot 
+
+<code console>
+    # grep 'nginx_flags=""' /etc/rc.conf.local || \
+      echo 'nginx_flags=""' >> rc.conf.local 
+</code>
+
+start it now
+
+<code console>
+    # /etc/rc.d/nginx start
+    nginx(ok)
+</code>
+
+</script></section><section class="wfid_temp89412 section"  data-markdown><script type='text/template'>
+## Getting the installation media: Part 1
+
+You need to download all of the files you see in a url like
+`http://ftp.usa.openbsd.org/pub/OpenBSD/5.5/amd64/` (assuming you're installing amd64)
+
+OpenBSD does not come with wget, but it does come with an http-compatible `ftp`
+binary, which we will use like so:
+
+<code console>
+    # URL=http://ftp.usa.openbsd.org/pub/OpenBSD/5.5/amd64/
+    # mkdir -p /var/www/htdocs/5.5/
+    # cd /var/www/htdocs/5.5
+    # ftp -Vio- ${URL}/SHA256 | \
+      sed -e 's/(//g;s/)//g' | \
+      awk '{print $2}' | \
+      while read L; do ftp ${URL}/${L}; done
+    # ftp ${URL}/SHA256{,.sig}
+</code>
+
+</script></section><section class="wfid_temp89460 section"  data-markdown><script type='text/template'>
+## Getting the installation media: Part 2
+
+Now that you have the installation media, symlink the pxeboot file in `5.5/` to a
+file called `auto_install`
+
+<code console>
+    # pwd
+    /var/www/htdocs
+    # ln -s 5.5/pxeboot ./auto_install
+    # ls -l
+    total 12
+    drwxr-xr-x  2 root  daemon  1024 May 27 16:41 5.5
+    lrwxr-xr-x  1 root  daemon    11 May 27 16:48 auto_install -> 5.5/pxeboot
+</code>
+
+We named it auto_install for two reasons:
+
+  - we set `filename "auto_install";` in the `dhcpd.conf`
+  - we wish to install, not upgrade or boot to the interactive installer. By
+    naming it `auto_install` the installer knows it must initiate the
+autoinstall process (as opposed to the autoupgrade or interactive installer)
+
+</script></section><section class="wfid_temp89496 section"  data-markdown><script type='text/template'>
+## Getting the installation media: part 3
+
+Now finally, set the `bsd` kernel in the tftp/web root so we can actually boot it:
+
+<code console>
+    # pwd
+    /var/www/htdocs
+    # ln -s 5.5/bsd.rd bsd
+    # ls -l
+    total 12
+    drwxr-xr-x  2 root  daemon  1024 May 27 16:41 5.5
+    lrwxr-xr-x  1 root  daemon    10 May 27 16:58 bsd -> 5.5/bsd.rd
+    lrwxr-xr-x  1 root  daemon    11 May 27 16:48 auto_install -> 5.5/pxeboot
+</code>
+
+</script></section><section class="wfid_temp89543 section"  data-markdown><script type='text/template'>
+## Building an install.conf: Part 1
+
+Now that everything is coming together, we have one last step to do: build an
+openbsd `install.conf` file. 
+
+As you probably know, installing openbsd involves answering a series of
+questions - most of which you go with the default on.  However, in some cases
+they are not sufficient (root password comes to mind). 
+
+In the event that you would like to change any of the default answers, you
+simply create an `install.conf` in your tftp root with answers to the questions
+asked by the installer.
+
+</script></section><section class="wfid_temp89590 section"  data-markdown><script type='text/template'>
+## Building an install.conf: Part 2
+
+### Example install.conf
+
+    system hostname = unconfigured
+    password for root account = hunter2
+    network interfaces = em0
+    IPv4 address for em0 = dhcp
+    Location of sets? = http
+    server? = 192.168.10.1
+    server directory? = 5.5/
+
+</script></section><section class="wfid_temp89622 section"  data-markdown><script type='text/template'>
+## Building an install.conf: Part 3
+
+Make sure this `install.conf` file is in the webroot - it has to be
+available at:
+
+    http://<next-server>/install.conf
+
+In my lab, the setup looks something like this:
+
+<code console>
+    # pwd
+    /var/www/htdocs
+    # ls -l
+    total 16
+    drwxr-xr-x  2 root  daemon  1024 May 27 16:41 5.5
+    lrwxr-xr-x  1 root  daemon    11 May 27 16:59 auto_install -> 5.5/pxeboot
+    lrwxr-xr-x  1 root  daemon    10 May 27 16:58 bsd -> 5.5/bsd.rd
+    -rw-r--r--  1 root  daemon   365 May 27 17:41 install.conf
+</code>
+
+</script></section><section class="wfid_temp89651 section"  data-markdown><script type='text/template'>
+## Building an install.conf: Part 3 (cont'd)
+
+<code console>
+    # cat install.conf
+    system hostname = unconfigured
+    password for root account = hunter2
+    Do you expect to run the X Window System? = yes
+    Change the default console to com0? = yes
+    What timezone are you in? = US/Mountain
+    Location of sets? = http
+    server? = 192.168.10.1
+    server directory? = 5.5/
+</code>
+
+</script></section><section class="wfid_temp89694 section"  data-markdown><script type='text/template'>
+## Example build 
+## and basic autoinstall
+
+[![Screencast of install](http://blog.niko.im/sc1.png)](https://asciinema.org/a/9931?speed=5&size=medium&autoplay=1)
+
+</script></section><section class="wfid_temp89723 section"  data-markdown><script type='text/template'>
+## How could we 
+## build on this?
+
+  * use `site${release}.tgz` to bootstrap your favorite software (CF Management comes to mind)
+  * monitor multicast responses in order to bootstrap new clients
+  * write an API-driven, dynamic `install.conf` generator (so that all install-answers are custom on a per-client/MAC basis)
+
+</script></section><section class="wfid_temp89752 section"  data-markdown><script type='text/template'>
+## Complicated example
+
+In my lab, I have a similar setup to the one demonstrated earlier , however, I use `httpd`, `cgi-perl`,
+`mod_rewrite` and `sqlite3` to serve different `install.conf`s that are built dynamically. This enables me to create and configure openbsd systems with a single command.
+
+</script></section><section class="wfid_temp89781 section"  data-markdown><script type='text/template'>
+## Complicated Example (part 2)
+
+Suppose I wanted to create a new VM called `hobosandwiches` with a
+different site.tgz, and root key from the rest of my environment.
+
+  * run shellscript with arguments defining the pieces of the virtual machine
+
+<code console>
+    # ./create_vm.sh --name hobosandwiches \
+        --sitefile ./sitefiles/hobos_site.tgz \
+        --rootkey "$(cat keys/hobo.pub)"
+</code>
+
+</script></section><section class="wfid_temp89820 section"  data-markdown><script type='text/template'>
+## Complicated Example (part 3)
+
+  * When this script executes, it will run a SQL INSERT into a sqlite database, like so
+
+<code console>
+
+    INSERT INTO vms (name,sitefile,rootkey) 
+      VALUES(
+        'hobosandwiches',
+        './sitefiles/hobos_site.tgz',
+        'ssh-rsafooooooooooooooooooooooo');
+</code>
+
+</script></section><section class="wfid_temp89883 section"  data-markdown><script type='text/template'>
+## Complicated Example (part 4)
+
+  * Then, the script will go to a chosen hypervisor and actually create the VM.
+  * During the VM creation phase, a child will fork off and watch the output for the moment a MAC address is assigned
+  * When the MAC address is assigned, it is saved and the record we just added to the DB is updated
+
+    `UPDATE vms SET mac='mac address' WHERE name='hobosandwiches';`
+
+</script></section><section class="wfid_temp89929 section"  data-markdown><script type='text/template'>
+## Complicated Example (part 5)
+
+  * In the meantime, the VM is created and boots
+  * When the VM boots, it checks `http://next-server/MACaddress-install.conf`
+  * apache is configured to rewrite that URL to `install.conf?mac=<mac>`
+
+    `RewriteRule ^/?(.*)-install.conf$ /install.conf?mac=$1 [L]`
+
+  * Apache is also configured to serve install.conf as a perl script
+
+    `AddHandler cgi-script .conf`
+
+</script></section><section class="wfid_temp89959 section"  data-markdown><script type='text/template'>
+## Complicated example (part 6)
+
+Finally, when `install.sh` runs on the client and looks for `http://next-server/MACaddress-install.conf`, a customized response is delivered.
+
+</script></section><section class="wfid_temp89988 section"  data-markdown><script type='text/template'>
+## Questions / Comments
+### Flames / Presents / Cakes
+</script></section>
+			</div>
+
+		</div>
+
+		<script src="/reveal.js/lib/js/head.min.js"></script>
+		<script src="/reveal.js/js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: '/reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: '/reveal.js/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: '/reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: '/reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: '/reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: '/reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
+
